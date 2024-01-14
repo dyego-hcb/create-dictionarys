@@ -1,5 +1,6 @@
 import sys
 import os
+import pandas as pd
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
 project_root = os.path.abspath(os.path.join(current_dir, '..'))
@@ -24,74 +25,78 @@ def add_notice_on_dict(dict_notice, id_dict_notice, id_notice, title_notice, con
     dict_notice[id_dict_notice] = {}
     dict_notice[id_dict_notice]['id_notice'] = id_notice
     dict_notice[id_dict_notice]['title_notice'] = title_notice
-    dict_notice[id_dict_notice]['notice_all_words'] = words_stemmed
+    dict_notice[id_dict_notice]['notice_content'] = words_lower_case
+    dict_notice[id_dict_notice]['notice_content_without_stopwords'] = words_without_stopwords
+    dict_notice[id_dict_notice]['notice_content_stemm_without_stopwords'] = words_stemmed
     dict_notice[id_dict_notice]['classe_notice'] = classe_notice
     dict_notice[id_dict_notice]['notice_words_total_with_stopwords'] = len(words_lower_case)
     dict_notice[id_dict_notice]['notice_words_total_without_stopwords'] = len(words_without_stopwords)
 
-    return  dict_notice
+    return dict_notice
 
-def create_dictionary_notices(path_bd):
+
+def create_dictionary_notices(path_bd, classe_notice):
     data_list = extract_data(path_bd)
 
     print('Starting create dict of notices ...')
-    dict_notice_real: dict = {}
-    dict_notice_fake: dict = {}
-    id_dict_real = 0
-    words_total_with_stopwords_group_real = 0
-    words_total_without_stopwords_group_real = 0
-    id_dict_fake = 0
-    words_total_with_stopwords_group_fake = 0
-    words_total_without_stopwords_group_fake = 0
+    dict_notice: dict = {}
+    id_dict = 0
+    words_total_with_stopwords_group = 0
+    words_total_without_stopwords_group = 0
 
     for data in data_list[1:]:
-        id_dict = data[0]
+        id_notice = data[0]
         title = data[1]
         content = data[2]
         classe = data[3]
 
-        if classe == 1:
-            current_dict = dict_notice_real
-            id_dict_real += 1
-            id_dict_group = id_dict_real
-            words_total_with_stopwords_group_real += len(content.split())
-            words_total_without_stopwords_group_real += len(remove_stopwords_in_list(content.split()))
-        elif classe == 0:
-            current_dict = dict_notice_fake
-            id_dict_fake += 1
-            id_dict_group = id_dict_fake
-            words_total_with_stopwords_group_fake += len(content.split())
-            words_total_without_stopwords_group_fake += len(remove_stopwords_in_list(content.split()))
-
-        current_dict = add_notice_on_dict(
-            current_dict, id_dict_group, id_dict, title, content, classe
-        )
+        if classe == classe_notice:
+            id_dict += 1
+            dict_notice = add_notice_on_dict(dict_notice, id_dict, id_notice, title, content, classe)
+            words_total_with_stopwords_group += dict_notice[id_dict]['notice_words_total_with_stopwords']
+            words_total_without_stopwords_group += dict_notice[id_dict]['notice_words_total_without_stopwords']
 
     print('Finish create dict of notices')
 
-    return dict_notice_real, words_total_with_stopwords_group_real, words_total_without_stopwords_group_real, dict_notice_fake, words_total_with_stopwords_group_fake, words_total_without_stopwords_group_fake
+    return dict_notice, words_total_with_stopwords_group, words_total_without_stopwords_group
 
-# def save_dict_to_txt(file_path, dict_notice, group_name, words_with_stopwords, words_without_stopwords):
-#     with open(file_path, 'w', encoding='utf-8') as file:
-#         file.write(f"- Dicionario de Noticias {group_name}\n")
-#         file.write(f"  Esse dicionario possui {words_without_stopwords} palavras (STOP-WORDS REMOVIDAS)\n")
-#         file.write(f"  Esse dicionario possui {words_with_stopwords} palavras (STOP-WORDS NO TEXTO)\n")
-#         file.write("  Estrutura do dicionario: \n")
-#         file.write("  ID - ID NOTICE - TITLE NOTICE - NOTICE ALL WORDS - CLASSE NOTICE - NOTICE WORDS TOTAL WITH STOPWORDS -  NOTICE WORDS TOTAL WITHOUT STOPWORDS \n")        
-#         file.write("- Dados do Dicionario:\n")
-#         for key, value in dict_notice.items():
-#             file.write(str(key) + ' - ' + str(value) + '\n')
+def save_dict_notice_to_xlsx(file_path, dict_notice, group_name, words_with_stopwords, words_without_stopwords):
+    print('Starting save dict ...')
 
-# dict_notice_real: dict = {}
-# dict_notice_fake: dict = {}
-# words_total_with_stopwords_group_real = 0
-# words_total_without_stopwords_group_real = 0
-# words_total_with_stopwords_group_fake = 0
-# words_total_without_stopwords_group_fake = 0
+    df = pd.DataFrame.from_dict(dict_notice, orient='index')
 
-# path_bd = os.path.join(project_root, 'base_data', 'FakeRecogna.xlsx')
-# dict_notice_real, words_total_with_stopwords_group_real, words_total_without_stopwords_group_real, dict_notice_fake, words_total_with_stopwords_group_fake, words_total_without_stopwords_group_fake = create_dictionary_notices(path_bd)
-# outpat = os.path.join(project_root, 'output', 'dict_notice_real.txt')
-# save_dict_to_txt(outpat, dict_notice_real, 'REAL', words_total_with_stopwords_group_real, words_total_without_stopwords_group_real)
-# outpat = os.path.join(project_root, 'output', 'dict_notice_fake.txt')
-# save_dict_to_txt(outpat, dict_notice_fake, 'FAKE', words_total_with_stopwords_group_real, words_total_without_stopwords_group_real)
+    with pd.ExcelWriter(file_path, engine='xlsxwriter') as writer:
+        df.to_excel(writer, sheet_name=f'Dicionario de Noticias {group_name}', index=False)
+
+        worksheet = writer.sheets[f'Dicionario de Noticias {group_name}']
+
+        (max_row, max_col) = df.shape
+
+        for col_num, value in enumerate(df.columns.values):
+            worksheet.write(0, col_num, value)
+
+        for row_num, row_data in enumerate(df.itertuples(index=False)):
+            for col_num, value in enumerate(row_data):
+                if isinstance(value, list):
+                    df.at[row_num, df.columns[col_num]] = '\n'.join(value)
+                    value = '\n'.join(value)
+                worksheet.write(row_num, col_num, value)
+
+        last_col = len(df.columns)
+        df.insert(last_col, 'info_dict', '')
+
+        info_dict_list = [
+            f"- Dicionario de Noticias {group_name}",
+            f"  Esse dicionario possui {len(dict_notice)} noticias",
+            f"  Esse dicionario possui {words_without_stopwords} palavras (STOP-WORDS REMOVIDAS)",
+            f"  Esse dicionario possui {words_with_stopwords} palavras (STOP-WORDS NO TEXTO)",
+            "  Estrutura do dicionario:",
+            "  ID - ID NOTICE - TITLE NOTICE - NOTICE ALL WORDS - CLASSE NOTICE - NOTICE WORDS TOTAL WITH STOPWORDS -  NOTICE WORDS TOTAL WITHOUT STOPWORDS"
+        ]
+
+        for i in range(len(info_dict_list)):
+            df.at[i, 'info_dict'] = info_dict_list[i]
+
+        df.to_excel(writer, sheet_name=f'Dicionario de Noticias {group_name}', index=False)
+    
+    print('Finish save dict ')
