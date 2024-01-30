@@ -18,6 +18,7 @@ def add_words_on_dict_group(dict_words_group, id_dict_words_group, word):
         dict_words_group[id_dict_words_group]['word'] = word
         dict_words_group[id_dict_words_group]['notices_appear_total'] = 0
         dict_words_group[id_dict_words_group]['ids_notice_appear'] = []
+        dict_words_group[id_dict_words_group]['titles_notice_appear'] = []
         dict_words_group[id_dict_words_group]['classe_notice_word_appear'] = []
         dict_words_group[id_dict_words_group]['words_total_appear_in_notice'] = []
         dict_words_group[id_dict_words_group]['words_total_in_notice_without_stop_words'] = []
@@ -55,6 +56,7 @@ def update_dictionary_words_group(dict_words_group, dict_notice, total_words_gro
         words_total_in_notice_without_stop_words = []
         words_total_in_notice_with_stop_words = []
         ids_notice_appear = []
+        titles_notice_appear = []
         classe_notice_word_appear = []
 
         for id_dict_notice, notice_info in dict_notice.items():
@@ -64,6 +66,7 @@ def update_dictionary_words_group(dict_words_group, dict_notice, total_words_gro
             if words_total_appear_in_notice > 0:
                 words_total_appear_in_group += words_total_appear_in_notice
                 ids_notice_appear.append(notice_info['id_notice'])
+                titles_notice_appear.append(notice_info['title_notice'])
                 classe_notice_word_appear.append(notice_info['classe_notice'])
                 word_append_on_notices_total.append(
                     words_total_appear_in_notice)
@@ -75,6 +78,7 @@ def update_dictionary_words_group(dict_words_group, dict_notice, total_words_gro
         dict_words_group[id_dict_words_group]['notices_appear_total'] = len(
             ids_notice_appear)
         dict_words_group[id_dict_words_group]['ids_notice_appear'] = ids_notice_appear
+        dict_words_group[id_dict_words_group]['titles_notice_appear'] = titles_notice_appear
         dict_words_group[id_dict_words_group]['classe_notice_word_appear'] = classe_notice_word_appear
         dict_words_group[id_dict_words_group]['words_total_appear_in_notice'] = word_append_on_notices_total
         dict_words_group[id_dict_words_group]['words_total_in_notice_without_stop_words'] = words_total_in_notice_without_stop_words
@@ -125,6 +129,7 @@ def save_dict_words_group_to_xlsx(file_path, dict_word, group_name):
             "WORD - " +
             "NUMBER NOTICE'S ON WORD APPEAR - " +
             "ID'S NOTICES ON WORD APPEAR - " +
+            "TITLE'S NOTICES ON WORD APPEAR -"
             "CLASSIFICATION NOTICE'S ON WORD APPEAR - " +
             "NUMBER ON WORD APPEAR ON NOTICE -  " +
             "NUMBER WORDS ON NOTICE WITH STOPWORDS - " +
@@ -143,14 +148,17 @@ def save_dict_words_group_to_xlsx(file_path, dict_word, group_name):
     print('Finish save dict words group\n')
 
 
-def save_dict_words_group_to_csv(file_path, dict_word, group_name):
+def save_dict_words_group_relevants_info_to_csv(file_path, dict_word, group_name):
     print('Starting save dict words group ...')
 
     pd.set_option('display.max_colwidth', None)
 
+    selected_columns = ['word', 'words_total_appear_in_group', 'words_total_in_group_without_stop_words', 'words_total_in_group_with_stop_words']
+
     df = pd.DataFrame.from_dict(dict_word, orient='index')
 
-    df = df.apply(lambda col: col.apply(lambda x: '\n'.join(map(str, x)) if isinstance(x, list) else x))
+    if selected_columns:
+        df = df[selected_columns]
 
     df['info_dict'] = ''
 
@@ -163,12 +171,6 @@ def save_dict_words_group_to_csv(file_path, dict_word, group_name):
         "  Estrutura do dicionario:",
         "  ID - " +
         "WORD - " +
-        "NUMBER NOTICE'S ON WORD APPEAR - " +
-        "ID'S NOTICES ON WORD APPEAR - " +
-        "CLASSIFICATION NOTICE'S ON WORD APPEAR - " +
-        "NUMBER ON WORD APPEAR ON NOTICE -  " +
-        "NUMBER WORDS ON NOTICE WITH STOPWORDS - " +
-        "NUMBER WORDS ON NOTICE WITHOUT STOPWORDS - " +
         "NUMBER ON WORD APPEAR IN GROUP - " +
         "NUMBER WORDS ON GROUP WITH STOPWORDS - " +
         "NUMBER WORDS ON GROUP WITHOUT STOPWORDS"

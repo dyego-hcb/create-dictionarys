@@ -110,7 +110,6 @@ def save_dict_words_to_xlsx(file_path, dict_word, group_name):
 
     with pd.ExcelWriter(file_path, engine='xlsxwriter') as writer:
         df = df.sort_values(by='word')
-        print(df)
         df.reset_index(drop=True, inplace=True)
         df.to_excel(
             writer, sheet_name=f'Dicionario de Palavras {group_name}', index=False)
@@ -162,14 +161,17 @@ def save_dict_words_to_xlsx(file_path, dict_word, group_name):
     print('Finish save dict words\n')
 
 
-def save_dict_words_to_csv(file_path, dict_word, group_name):
+def save_dict_words_relevants_info_to_csv(file_path, dict_word, group_name):
     print('Starting save dict words ...')
 
     pd.set_option('display.max_colwidth', None)
 
+    selected_columns = ['word', 'words_total_appear_in_group_real', 'words_total_appear_in_group_fake', 'percet_strong_word_in_group_real', 'percet_strong_word_in_group_fake']
+
     df = pd.DataFrame.from_dict(dict_word, orient='index')
 
-    df = df.apply(lambda col: col.apply(lambda x: '\n'.join(map(str, x)) if isinstance(x, list) else x))
+    if selected_columns:
+        df = df[selected_columns]
 
     df['info_dict'] = ''
 
@@ -182,14 +184,6 @@ def save_dict_words_to_csv(file_path, dict_word, group_name):
         "  Estrutura do dicionario:",
         "  ID - " +
         "WORD - " +
-        "NUMBER NOTICE'S ON WORD APPEAR - " +
-        "ID'S NOTICES ON WORD APPEAR - " +
-        "CLASSIFICATION NOTICE'S ON WORD APPEAR - " +
-        "NUMBER ON WORD APPEAR ON NOTICE -  " +
-        "NUMBER WORDS ON NOTICE REAL WITH STOPWORDS - " +
-        "NUMBER WORDS ON NOTICE REAL WITHOUT STOPWORDS - " +
-        "NUMBER WORDS ON NOTICE FAKE WITH STOPWORDS - " +
-        "NUMBER WORDS ON NOTICE FAKE WITHOUT STOPWORDS - " +
         "NUMBER ON WORD APPEAR IN GROUP REAL - " +
         "NUMBER ON WORD APPEAR IN GROUP FAKE - " +
         "PERCENTAGE OF BEING A STRONG WORD IN GROUP OF REAL WORDS - " +
