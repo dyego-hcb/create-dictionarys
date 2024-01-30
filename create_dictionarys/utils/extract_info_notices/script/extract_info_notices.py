@@ -14,7 +14,7 @@ def extract_data(file_path):
             classe = int(row['Classe']) if not pd.isna(row['Classe']) and row['Classe'] != '' else None
             data_list.append([row_id, title, content, classe])
 
-        print('Finish extract info on data base')
+        print('Finish extract info on data base\n')
         return data_list
 
     except FileNotFoundError:

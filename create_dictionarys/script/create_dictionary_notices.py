@@ -1,3 +1,4 @@
+import csv
 import sys
 import os
 import pandas as pd
@@ -13,6 +14,7 @@ from utils.remove_accentuation.script.remove_accentuation import remover_accentu
 from utils.remove_punctuation.script.remove_punctuation import remover_ponctuation
 from utils.remove_stopwords.script.remove_stopwords import remove_stopwords_in_list
 from utils.words_stemmer.script.words_stemmer import stemmize_words
+from unidecode import unidecode 
 
 def add_notice_on_dict(dict_notice, id_dict_notice, id_notice, title_notice, content_notice, classe_notice):
     words_without_ponctuation = remover_ponctuation(content_notice)
@@ -56,12 +58,12 @@ def create_dictionary_notices(path_bd, classe_notice):
             words_total_with_stopwords_group += dict_notice[id_dict]['notice_words_total_with_stopwords']
             words_total_without_stopwords_group += dict_notice[id_dict]['notice_words_total_without_stopwords']
 
-    print('Finish create dict of notices')
+    print('Finish create dict of notices\n')
 
     return dict_notice, words_total_with_stopwords_group, words_total_without_stopwords_group
 
 def save_dict_notice_to_xlsx(file_path, dict_notice, group_name, words_with_stopwords, words_without_stopwords):
-    print('Starting save dict ...')
+    print('Starting save dict of notices ...')
 
     df = pd.DataFrame.from_dict(dict_notice, orient='index')
 
@@ -99,4 +101,34 @@ def save_dict_notice_to_xlsx(file_path, dict_notice, group_name, words_with_stop
 
         df.to_excel(writer, sheet_name=f'Dicionario de Noticias {group_name}', index=False)
     
-    print('Finish save dict ')
+    print('Finish save dict of notices\n')
+
+def save_dict_notice_to_csv(file_path, dict_notice, group_name, words_with_stopwords, words_without_stopwords):
+    print('Starting save dict of notices ...')
+
+    pd.set_option('display.max_colwidth', None)
+
+    df = pd.DataFrame.from_dict(dict_notice, orient='index')
+
+    df['title_notice'] = df['title_notice'].apply(unidecode)
+
+    df = df.apply(lambda col: col.apply(lambda x: '\n'.join(map(str, x)) if isinstance(x, list) else x))
+
+    df['info_dict'] = ''
+
+    info_dict_list = [
+        f"- Dicionario de Noticias {group_name}",
+        f"  Esse dicionario possui {len(dict_notice)} noticias",
+        f"  Esse dicionario possui {words_without_stopwords} palavras (STOP-WORDS REMOVIDAS)",
+        f"  Esse dicionario possui {words_with_stopwords} palavras (STOP-WORDS NO TEXTO)",
+        "  Estrutura do dicionario:",
+        "  ID - ID NOTICE - TITLE NOTICE - NOTICE ALL WORDS - CLASSE NOTICE - NOTICE WORDS TOTAL WITH STOPWORDS -  NOTICE WORDS TOTAL WITHOUT STOPWORDS"
+    ]
+
+    df.at[1, 'info_dict'] = info_dict_list[0]
+    for i in range(1, len(info_dict_list)):
+        df.at[i+1, 'info_dict'] = info_dict_list[i]
+
+    df.to_csv(file_path, index=False, encoding='utf-8', quoting=csv.QUOTE_NONNUMERIC)
+
+    print('Finish save dict of notices\n')
