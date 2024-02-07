@@ -3,7 +3,7 @@ import sys
 import os
 import pandas as pd
 
-from unidecode import unidecode 
+from unidecode import unidecode
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
 project_root = os.path.abspath(os.path.join(current_dir, '..'))
@@ -26,6 +26,7 @@ def add_words_on_dict_words(dict_words, id_dict_words, word):
         dict_words[id_dict_words]['words_total_in_group_real_with_stop_words'] = 0
         dict_words[id_dict_words]['words_total_in_group_fake_without_stop_words'] = 0
         dict_words[id_dict_words]['words_total_in_group_fake_with_stop_words'] = 0
+        dict_words[id_dict_words]['words_total_appear_in_both_group'] = 0
         dict_words[id_dict_words]['words_total_appear_in_group_real'] = 0
         dict_words[id_dict_words]['words_total_appear_in_group_fake'] = 0
         dict_words[id_dict_words]['percet_strong_word_in_group_real'] = 0
@@ -78,12 +79,10 @@ def update_dictionary_words(dict_words, dict_words_group, classe_group):
                         id_group]['words_total_in_group_without_stop_words']
                     words_total_in_group_real_with_stop_words = dict_words_group[
                         id_group]['words_total_in_group_with_stop_words']
-                    percet_strong_word_in_group_real = (
-                        words_total_appear_in_group_real/words_total_in_group_real_without_stop_words)*100
                     dict_words[id_dict_words]['words_total_in_group_real_without_stop_words'] = words_total_in_group_real_without_stop_words
                     dict_words[id_dict_words]['words_total_in_group_real_with_stop_words'] = words_total_in_group_real_with_stop_words
                     dict_words[id_dict_words]['words_total_appear_in_group_real'] = words_total_appear_in_group_real
-                    dict_words[id_dict_words]['percet_strong_word_in_group_real'] = percet_strong_word_in_group_real
+                    dict_words[id_dict_words]['words_total_appear_in_both_group'] += words_total_appear_in_group_real
                 else:
                     words_total_appear_in_group_fake = dict_words_group[
                         id_group]['words_total_appear_in_group']
@@ -91,16 +90,27 @@ def update_dictionary_words(dict_words, dict_words_group, classe_group):
                         id_group]['words_total_in_group_without_stop_words']
                     words_total_in_group_fake_with_stop_words = dict_words_group[
                         id_group]['words_total_in_group_with_stop_words']
-                    percet_strong_word_in_group_fake = (
-                        words_total_appear_in_group_fake/words_total_in_group_fake_without_stop_words)*100
                     dict_words[id_dict_words]['words_total_in_group_fake_without_stop_words'] = words_total_in_group_fake_without_stop_words
                     dict_words[id_dict_words]['words_total_in_group_fake_with_stop_words'] = words_total_in_group_fake_with_stop_words
                     dict_words[id_dict_words]['words_total_appear_in_group_fake'] = words_total_appear_in_group_fake
-                    dict_words[id_dict_words]['percet_strong_word_in_group_fake'] = percet_strong_word_in_group_fake
+                    dict_words[id_dict_words]['words_total_appear_in_both_group'] += words_total_appear_in_group_fake
 
     print('Finish update dict of words\n')
 
     return dict_words
+
+
+def calculate_percent_to_strong_word(dict_words):
+    for id_dict_words, word_dict_info in dict_words.items():
+
+        percet_strong_word_in_group_fake = (word_dict_info['words_total_appear_in_group_fake'] / word_dict_info['words_total_appear_in_both_group']) * 100
+        percet_strong_word_in_group_real = (word_dict_info['words_total_appear_in_group_real'] / word_dict_info['words_total_appear_in_both_group']) * 100
+
+        dict_words[id_dict_words]['percet_strong_word_in_group_fake'] = percet_strong_word_in_group_fake
+        dict_words[id_dict_words]['percet_strong_word_in_group_real'] = percet_strong_word_in_group_real
+
+    return dict_words
+
 
 
 def save_dict_words_to_xlsx(file_path, dict_word, group_name):
@@ -166,7 +176,8 @@ def save_dict_words_relevants_info_to_csv(file_path, dict_word, group_name):
 
     pd.set_option('display.max_colwidth', None)
 
-    selected_columns = ['word', 'words_total_appear_in_group_real', 'words_total_appear_in_group_fake', 'percet_strong_word_in_group_real', 'percet_strong_word_in_group_fake']
+    selected_columns = ['word', 'words_total_appear_in_both_group', 'words_total_appear_in_group_real', 'words_total_appear_in_group_fake',
+                        'percet_strong_word_in_group_real', 'percet_strong_word_in_group_fake']
 
     df = pd.DataFrame.from_dict(dict_word, orient='index')
 
@@ -184,6 +195,7 @@ def save_dict_words_relevants_info_to_csv(file_path, dict_word, group_name):
         "  Estrutura do dicionario:",
         "  ID - " +
         "WORD - " +
+        "NUMBER TOTAL ON WORD APPEAR IN BOTH GROUP - " +
         "NUMBER ON WORD APPEAR IN GROUP REAL - " +
         "NUMBER ON WORD APPEAR IN GROUP FAKE - " +
         "PERCENTAGE OF BEING A STRONG WORD IN GROUP OF REAL WORDS - " +
@@ -193,7 +205,8 @@ def save_dict_words_relevants_info_to_csv(file_path, dict_word, group_name):
     df.at[1, 'info_dict'] = info_dict_list[0]
     for i in range(1, len(info_dict_list)):
         df.at[i+1, 'info_dict'] = info_dict_list[i]
-    
-    df.to_csv(file_path, index=False, encoding='utf-8', quoting=csv.QUOTE_NONNUMERIC)
+
+    df.to_csv(file_path, index=False, encoding='utf-8',
+              quoting=csv.QUOTE_NONNUMERIC)
 
     print('Finish save dict words\n')

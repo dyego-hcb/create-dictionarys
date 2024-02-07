@@ -5,7 +5,7 @@ import pandas as pd
 
 from create_dictionary_notices import create_dictionary_notices, save_dict_notice_to_xlsx, save_dict_notice_to_csv
 from script.create_dictionary_words_group import create_dictionary_words_group, update_dictionary_words_group, save_dict_words_group_to_xlsx, save_dict_words_group_relevants_info_to_csv
-from script.create_dictionary_words import create_dictionary_words, update_dictionary_words, save_dict_words_to_xlsx, save_dict_words_relevants_info_to_csv
+from script.create_dictionary_words import create_dictionary_words, update_dictionary_words, calculate_percent_to_strong_word, save_dict_words_to_xlsx, save_dict_words_relevants_info_to_csv
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
 project_root = os.path.abspath(os.path.join(current_dir, '..'))
@@ -198,6 +198,7 @@ dict_words = create_dictionary_words(dict_words, dict_words_real)
 dict_words = create_dictionary_words(dict_words, dict_words_fake)
 dict_words = update_dictionary_words(dict_words, dict_words_real, 1)
 dict_words = update_dictionary_words(dict_words, dict_words_fake, 0)
+dict_words = calculate_percent_to_strong_word(dict_words);
 
 word_dict_words_total = len(dict_words)
 
