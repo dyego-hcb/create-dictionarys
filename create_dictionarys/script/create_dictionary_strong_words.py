@@ -12,18 +12,19 @@ project_root = os.path.abspath(os.path.join(current_dir, '..'))
 sys.path.append(project_root)
 
 
-def add_words_on_dict_strong_words(dict_strong_words, id_dict_strong_words, word, words_total_appear_in_group_real, percet_strong_word_in_group_real, words_total_appear_in_group_fake, percet_strong_word_in_group_fake):
+def add_words_on_dict_strong_words(dict_strong_words, id_dict_strong_words, word, words_total_appear_in_both_group, words_total_appear_in_group_real, percet_strong_word_in_group_real, words_total_appear_in_group_fake, percet_strong_word_in_group_fake):
 
     if not any(entry['word'] == word for entry in dict_strong_words.values()):
         id_dict_strong_words += 1
         dict_strong_words[id_dict_strong_words] = {}
         dict_strong_words[id_dict_strong_words]['word'] = word
+        dict_strong_words[id_dict_strong_words]['words_total_appear_in_both_group'] = words_total_appear_in_both_group
         dict_strong_words[id_dict_strong_words]['words_total_appear_in_group_real'] = words_total_appear_in_group_real
         dict_strong_words[id_dict_strong_words]['percet_strong_word_in_group_real'] = percet_strong_word_in_group_real
         dict_strong_words[id_dict_strong_words]['words_total_appear_in_group_fake'] = words_total_appear_in_group_fake
         dict_strong_words[id_dict_strong_words]['percet_strong_word_in_group_fake'] = percet_strong_word_in_group_fake
 
-    return dict_strong_words
+    return dict_strong_words, id_dict_strong_words
 
 
 def create_dictionary_strong_words(dict_strong_words, dict_words, class_dict):
@@ -32,6 +33,7 @@ def create_dictionary_strong_words(dict_strong_words, dict_words, class_dict):
 
     for id_word, words_info in dict_words.items():
         word = words_info['word']
+        words_total_appear_in_both_group = words_info['words_total_appear_in_both_group']
         words_total_appear_in_group_real = words_info['words_total_appear_in_group_real']
         percet_strong_word_in_group_real = words_info['percet_strong_word_in_group_real']
         words_total_appear_in_group_fake = words_info['words_total_appear_in_group_fake']
@@ -39,16 +41,14 @@ def create_dictionary_strong_words(dict_strong_words, dict_words, class_dict):
 
         if (class_dict == 1):
             if (percet_strong_word_in_group_real >= 70):
-                dict_strong_words, id_dict_strong_words = add_words_on_dict_strong_words(
-                    dict_words, id_dict_strong_words, word, words_total_appear_in_group_real, percet_strong_word_in_group_real, words_total_appear_in_group_fake, percet_strong_word_in_group_fake)
+                dict_strong_words, id_dict_strong_words = add_words_on_dict_strong_words(dict_strong_words, id_dict_strong_words, word, words_total_appear_in_both_group, words_total_appear_in_group_real, percet_strong_word_in_group_real, words_total_appear_in_group_fake, percet_strong_word_in_group_fake)
         else:
             if (percet_strong_word_in_group_fake >= 70):
-                dict_strong_words, id_dict_strong_words = add_words_on_dict_strong_words(
-                    dict_words, id_dict_strong_words, word, words_total_appear_in_group_real, percet_strong_word_in_group_real, words_total_appear_in_group_fake, percet_strong_word_in_group_fake)
+                dict_strong_words, id_dict_strong_words = add_words_on_dict_strong_words(dict_strong_words, id_dict_strong_words, word, words_total_appear_in_both_group, words_total_appear_in_group_real, percet_strong_word_in_group_real, words_total_appear_in_group_fake, percet_strong_word_in_group_fake)
 
-    dict_strong_words_sorted = dict(
-        sorted(dict_strong_words.items(), key=lambda x: x[1]['word']))
+    dict_strong_words_sorted = dict(sorted(dict_strong_words.items(), key=lambda x: x[1]['word']))
     print('Finish create dict of strong words\n')
+
     return dict_strong_words_sorted
 
 
@@ -59,6 +59,7 @@ def save_dict_strong_words_to_xlsx(file_path, dict_strong_word, group_name):
 
     with pd.ExcelWriter(file_path, engine='xlsxwriter') as writer:
         df = df.sort_values(by='word')
+        df = pd.concat([pd.DataFrame([df.columns], columns=df.columns), df])
         df.reset_index(drop=True, inplace=True)
         df.to_excel(
             writer, sheet_name=f'Dicionario de Palavras Fortes {group_name}', index=False)
@@ -108,8 +109,6 @@ def save_dict_strong_words_to_csv(file_path, dict_strong_word, group_name):
     pd.set_option('display.max_colwidth', None)
 
     df = pd.DataFrame.from_dict(dict_strong_word, orient='index')
-
-    df = df.apply(lambda col: col.apply(lambda x: '\n'.join(map(str, x)) if isinstance(x, list) else x))
 
     df['info_dict'] = ''
 
@@ -208,22 +207,27 @@ save_dict_words_relevants_info_to_csv(outpat_words, dict_words, 'Geral')
 outpat_words = os.path.join(project_root, 'output', 'dict_words.xlsx')
 save_dict_words_to_xlsx(outpat_words, dict_words, 'Geral')
 
-# dict_strong_words_real: dict = {}
-# strong_words_dict_real_total = 0
+dict_strong_words_real: dict = {}
+strong_words_dict_real_total = 0
 
-# dict_strong_words_real = create_dictionary_strong_words(dict_strong_words_real, dict_words, 1)
+dict_strong_words_real = create_dictionary_strong_words(dict_strong_words_real, dict_words, 1)
 
-# strong_words_dict_real_total = len(dict_strong_words_real)
+strong_words_dict_real_total = len(dict_strong_words_real)
 
-# outpat_strong_words = os.path.join(project_root, 'output', 'dict_strong_words_reais.csv')
-# save_dict_strong_words_to_xlsx(outpat_words, dict_strong_words_real, 'Reais')
+outpat_strong_words = os.path.join(project_root, 'output', 'dict_strong_words_reais.xlsx')
+save_dict_strong_words_to_xlsx(outpat_strong_words, dict_strong_words_real, 'R')
 
-# dict_strong_words_fake: dict = {}
-# strong_words_dict_fake_total = 0
+outpat_strong_words = os.path.join(project_root, 'output', 'dict_strong_words_reais_relevant_info.csv')
+save_dict_strong_words_to_csv(outpat_strong_words, dict_strong_words_real, 'Reais')
 
-# dict_strong_words_fake = create_dictionary_strong_words(dict_strong_words_fake, dict_words, 0)
+dict_strong_words_fake: dict = {}
+strong_words_dict_fake_total = 0
 
-# strong_words_dict_fake_total = len(dict_strong_words_fake)
+dict_strong_words_fake = create_dictionary_strong_words(dict_strong_words_fake, dict_words, 0)
+strong_words_dict_fake_total = len(dict_strong_words_fake)
 
-# outpat_strong_words = os.path.join(project_root, 'output', 'dict_strong_words_fakes.csv')
-# save_dict_strong_words_to_xlsx(outpat_words, strong_words_dict_fake_total, 'Fakes')
+outpat_strong_words = os.path.join(project_root, 'output', 'dict_strong_words_fakes.xlsx')
+save_dict_strong_words_to_xlsx(outpat_strong_words, dict_strong_words_fake, 'F')
+
+outpat_strong_words = os.path.join(project_root, 'output', 'dict_strong_words_fakes_relevant_info.csv')
+save_dict_strong_words_to_csv(outpat_strong_words, dict_strong_words_fake, 'Fakes')
