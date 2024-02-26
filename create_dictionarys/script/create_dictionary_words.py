@@ -1,14 +1,14 @@
 import csv
 import sys
 import os
+import openpyxl
 import pandas as pd
-
-from unidecode import unidecode
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
 project_root = os.path.abspath(os.path.join(current_dir, '..'))
 sys.path.append(project_root)
 
+from unidecode import unidecode
 
 def add_words_on_dict_words(dict_words, id_dict_words, word):
 
@@ -103,14 +103,64 @@ def update_dictionary_words(dict_words, dict_words_group, classe_group):
 def calculate_percent_to_strong_word(dict_words):
     for id_dict_words, word_dict_info in dict_words.items():
 
-        percet_strong_word_in_group_fake = (word_dict_info['words_total_appear_in_group_fake'] / word_dict_info['words_total_appear_in_both_group']) * 100
-        percet_strong_word_in_group_real = (word_dict_info['words_total_appear_in_group_real'] / word_dict_info['words_total_appear_in_both_group']) * 100
+        percet_strong_word_in_group_fake = (
+            word_dict_info['words_total_appear_in_group_fake'] / word_dict_info['words_total_appear_in_both_group']) * 100
+        percet_strong_word_in_group_real = (
+            word_dict_info['words_total_appear_in_group_real'] / word_dict_info['words_total_appear_in_both_group']) * 100
 
         dict_words[id_dict_words]['percet_strong_word_in_group_fake'] = percet_strong_word_in_group_fake
         dict_words[id_dict_words]['percet_strong_word_in_group_real'] = percet_strong_word_in_group_real
 
     return dict_words
 
+
+def load_dict_words_xlsx(folder_path, file_name, dict_words):
+    print('Starting loading dict words ...')
+    file_path = os.path.join(folder_path, file_name)
+
+    df = pd.read_excel(file_path)
+
+    for row_id, row in df.iterrows():
+        id_dict_words = row_id
+        word = row['word']
+        notices_appear_total = row['notices_appear_total']
+        ids_notice_appear = row['ids_notice_appear']
+        classe_notice_word_appear = row['classe_notice_word_appear']
+        words_total_appear_in_notice = row['words_total_appear_in_notice']
+        words_total_in_notice_without_stop_words = row['words_total_in_notice_without_stop_words']
+        words_total_in_notice_with_stop_words = row['words_total_in_notice_with_stop_words']
+        words_total_in_group_real_without_stop_words = row['words_total_in_group_real_without_stop_words']
+        words_total_in_group_real_with_stop_words = row['words_total_in_group_real_with_stop_words']
+        words_total_in_group_real_with_stop_words = row['words_total_in_group_real_with_stop_words']
+        words_total_in_group_fake_without_stop_words = row['words_total_in_group_fake_without_stop_words']
+        words_total_in_group_fake_with_stop_words = row['words_total_in_group_fake_with_stop_words']
+        words_total_appear_in_both_group = row['words_total_appear_in_both_group']
+        words_total_appear_in_group_real = row['words_total_appear_in_group_real']
+        words_total_appear_in_group_fake = row['words_total_appear_in_group_fake']
+        percet_strong_word_in_group_fake = row['percet_strong_word_in_group_fake']
+        percet_strong_word_in_group_real = row['percet_strong_word_in_group_real']
+
+        dict_words[id_dict_words] = {}
+        dict_words[id_dict_words]['word'] = word
+        dict_words[id_dict_words]['notices_appear_total'] = notices_appear_total
+        dict_words[id_dict_words]['ids_notice_appear'] = ids_notice_appear
+        dict_words[id_dict_words]['classe_notice_word_appear'] = classe_notice_word_appear
+        dict_words[id_dict_words]['words_total_appear_in_notice'] = words_total_appear_in_notice
+        dict_words[id_dict_words]['words_total_in_notice_without_stop_words'] = words_total_in_notice_without_stop_words
+        dict_words[id_dict_words]['words_total_in_notice_with_stop_words'] = words_total_in_notice_with_stop_words
+        dict_words[id_dict_words]['words_total_in_group_real_without_stop_words'] = words_total_in_group_real_without_stop_words
+        dict_words[id_dict_words]['words_total_in_group_real_with_stop_words'] = words_total_in_group_real_with_stop_words
+        dict_words[id_dict_words]['words_total_in_group_fake_without_stop_words'] = words_total_in_group_fake_without_stop_words
+        dict_words[id_dict_words]['words_total_in_group_fake_with_stop_words'] = words_total_in_group_fake_with_stop_words
+        dict_words[id_dict_words]['words_total_appear_in_both_group'] = words_total_appear_in_both_group
+        dict_words[id_dict_words]['words_total_appear_in_group_real'] = words_total_appear_in_group_real
+        dict_words[id_dict_words]['words_total_appear_in_group_fake'] = words_total_appear_in_group_fake
+        dict_words[id_dict_words]['percet_strong_word_in_group_real'] = percet_strong_word_in_group_real
+        dict_words[id_dict_words]['percet_strong_word_in_group_fake'] = percet_strong_word_in_group_fake
+
+    print('Finish load dict of words\n')
+
+    return dict_words
 
 
 def save_dict_words_to_xlsx(file_path, dict_word, group_name):

@@ -1,14 +1,14 @@
 import csv
 import sys
 import os
+import openpyxl
 import pandas as pd
-
-from unidecode import unidecode 
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
 project_root = os.path.abspath(os.path.join(current_dir, '..'))
 sys.path.append(project_root)
 
+from unidecode import unidecode
 
 def add_words_on_dict_group(dict_words_group, id_dict_words_group, word):
 
@@ -92,6 +92,44 @@ def update_dictionary_words_group(dict_words_group, dict_notice, total_words_gro
     return dict_words_group
 
 
+def load_dict_words_group_xlsx(folder_path, file_name, dict_words_group):
+    print('Starting loading dict words group...')
+    file_path = os.path.join(folder_path, file_name)
+
+    df = pd.read_excel(file_path)
+
+    for row_id, row in df.iterrows():
+        id_dict_word_group = row_id
+        word = row['word']
+        notices_appear_total = row['notices_appear_total']
+        ids_notice_appear = row['ids_notice_appear']
+        titles_notice_appear = row['titles_notice_appear']
+        classe_notice_word_appear = row['classe_notice_word_appear']
+        words_total_appear_in_notice = row['words_total_appear_in_notice']
+        words_total_in_notice_without_stop_words = row['words_total_in_notice_without_stop_words']
+        words_total_in_notice_with_stop_words = row['words_total_in_notice_with_stop_words']
+        words_total_appear_in_group = row['words_total_appear_in_group']
+        words_total_in_group_without_stop_words = row['words_total_in_group_without_stop_words']
+        words_total_in_group_with_stop_words = row['words_total_in_group_with_stop_words']
+
+        dict_words_group[id_dict_word_group] = {}
+        dict_words_group[id_dict_word_group]['word'] = word
+        dict_words_group[id_dict_word_group]['notices_appear_total'] = notices_appear_total
+        dict_words_group[id_dict_word_group]['ids_notice_appear'] = ids_notice_appear
+        dict_words_group[id_dict_word_group]['titles_notice_appear'] = titles_notice_appear
+        dict_words_group[id_dict_word_group]['classe_notice_word_appear'] = classe_notice_word_appear
+        dict_words_group[id_dict_word_group]['words_total_appear_in_notice'] = words_total_appear_in_notice
+        dict_words_group[id_dict_word_group]['words_total_in_notice_without_stop_words'] = words_total_in_notice_without_stop_words
+        dict_words_group[id_dict_word_group]['words_total_in_notice_with_stop_words'] = words_total_in_notice_with_stop_words
+        dict_words_group[id_dict_word_group]['words_total_appear_in_group'] = words_total_appear_in_group
+        dict_words_group[id_dict_word_group]['words_total_in_group_without_stop_words'] = words_total_in_group_without_stop_words
+        dict_words_group[id_dict_word_group]['words_total_in_group_with_stop_words'] = words_total_in_group_with_stop_words
+                                             
+    print('Finish load dict of words group\n')
+
+    return dict_words_group
+
+
 def save_dict_words_group_to_xlsx(file_path, dict_word, group_name):
     print('Starting save dict words group ...')
 
@@ -153,7 +191,8 @@ def save_dict_words_group_relevants_info_to_csv(file_path, dict_word, group_name
 
     pd.set_option('display.max_colwidth', None)
 
-    selected_columns = ['word', 'words_total_appear_in_group', 'words_total_in_group_without_stop_words', 'words_total_in_group_with_stop_words']
+    selected_columns = ['word', 'words_total_appear_in_group',
+                        'words_total_in_group_without_stop_words', 'words_total_in_group_with_stop_words']
 
     df = pd.DataFrame.from_dict(dict_word, orient='index')
 
@@ -179,7 +218,8 @@ def save_dict_words_group_relevants_info_to_csv(file_path, dict_word, group_name
     df.at[1, 'info_dict'] = info_dict_list[0]
     for i in range(1, len(info_dict_list)):
         df.at[i+1, 'info_dict'] = info_dict_list[i]
-    
-    df.to_csv(file_path, index=False, encoding='utf-8', quoting=csv.QUOTE_NONNUMERIC)
+
+    df.to_csv(file_path, index=False, encoding='utf-8',
+              quoting=csv.QUOTE_NONNUMERIC)
 
     print('Finish save dict words group\n')
