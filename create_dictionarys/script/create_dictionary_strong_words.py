@@ -169,8 +169,22 @@ def save_dict_strong_words_to_csv(file_path, dict_strong_word, group_name):
 
 print("\nStarting execute ORI methods\n")
 
+
 path_bd = os.path.join(project_root, 'base_data', 'FakeRecogna.xlsx')
 path_load_dicts = os.path.join(project_root, 'output')
+
+dict_notice_boths: dict = {}
+# words_total_with_stopwords_both_group = 0
+# words_total_without_stopwords_both_group = 0
+
+# dict_notice_boths, words_total_with_stopwords_both_group, words_total_without_stopwords_both_group = create_dictionary_notices(path_bd, dict_notice_boths, 1)
+# dict_notice_boths, words_total_with_stopwords_both_group, words_total_without_stopwords_both_group = create_dictionary_notices(path_bd, dict_notice_boths, 0)
+
+# outpat_notice = os.path.join(project_root, 'output', 'dict_notice_boths.csv')
+# save_dict_notices_to_csv(outpat_notice, dict_notice_boths, 'Boths', words_total_with_stopwords_both_group, words_total_without_stopwords_both_group)
+
+# outpat_notice = os.path.join(project_root, 'output', 'dict_notice_boths.xlsx')
+# save_dict_notices_to_xlsx(outpat_notice, dict_notice_boths, 'Boths', words_total_with_stopwords_both_group, words_total_without_stopwords_both_group)
 
 dict_notice_reais: dict = {}
 words_total_with_stopwords_group_reais = 0
@@ -179,7 +193,7 @@ words_total_without_stopwords_group_reais = 0
 # dict_notice_reais = load_dict_notices_xlsx(
 #     path_load_dicts, "dict_notice_reais.xlsx", dict_notice_reais)
 
-dict_notice_reais, words_total_with_stopwords_group_reais, words_total_without_stopwords_group_reais = create_dictionary_notices(path_bd, 1)
+dict_notice_reais, words_total_with_stopwords_group_reais, words_total_without_stopwords_group_reais = create_dictionary_notices(path_bd, dict_notice_reais, 1)
 
 # outpat_notice = os.path.join(project_root, 'output', 'dict_notice_reais.csv')
 # save_dict_notices_to_csv(outpat_notice, dict_notice_reais, 'Reais', words_total_with_stopwords_group_reais, words_total_without_stopwords_group_reais)
@@ -214,7 +228,7 @@ words_total_without_stopwords_group_fakes = 0
 # dict_notice_fakes = load_dict_notices_xlsx(
 #     path_load_dicts, "dict_notice_fakes.xlsx", dict_notice_fakes)
 
-dict_notice_fakes, words_total_with_stopwords_group_fakes, words_total_without_stopwords_group_fakes = create_dictionary_notices(path_bd, 0)
+dict_notice_fakes, words_total_with_stopwords_group_fakes, words_total_without_stopwords_group_fakes = create_dictionary_notices(path_bd, dict_notice_fakes, 0)
 
 # outpat_notice = os.path.join(project_root, 'output', 'dict_notice_fakes.csv')
 # save_dict_notices_to_csv(outpat_notice, dict_notice_fakes, 'Fakes', words_total_with_stopwords_group_fakes, words_total_without_stopwords_group_fakes)
@@ -295,6 +309,33 @@ save_dict_strong_words_to_xlsx(outpat_strong_words, dict_strong_words_fakes, 'F'
 # outpat_strong_words = os.path.join(project_root, 'output', 'dict_strong_words_fakes_relevant_info.csv')
 # save_dict_strong_words_to_csv(outpat_strong_words, dict_strong_words_fakes, 'Fakes')
 
+dict_notice_boths_relevant_info: dict = {}
+
+dict_notice_boths_relevant_info = create_dictionary_notices_relevant_info(
+    dict_notice_boths_relevant_info, dict_notice_reais)
+dict_notice_boths_relevant_info = create_dictionary_notices_relevant_info(
+    dict_notice_boths_relevant_info, dict_notice_fakes)
+
+dict_notice_boths_relevant_info = update_dictionary_notices_relevant_info(
+    dict_notice_boths_relevant_info, dict_notice_reais, dict_strong_words_reais, 1)
+dict_notice_boths_relevant_info = update_dictionary_notices_relevant_info(
+    dict_notice_boths_relevant_info, dict_notice_reais, dict_strong_words_fakes, 0)
+
+dict_notice_boths_relevant_info = update_dictionary_notices_relevant_info(
+    dict_notice_boths_relevant_info, dict_notice_fakes, dict_strong_words_reais, 1)
+dict_notice_boths_relevant_info = update_dictionary_notices_relevant_info(
+    dict_notice_boths_relevant_info, dict_notice_fakes, dict_strong_words_fakes, 0)
+
+outpat_notice_reais_relevant_info_xlsx = os.path.join(
+    project_root, 'output', 'dict_notice_relevant_info_boths.xlsx')
+save_dict_notices_relevant_info_to_xlsx(
+    outpat_notice_reais_relevant_info_xlsx, dict_notice_boths_relevant_info, 'Boths')
+
+outpat_notice_reais_relevant_info_csv = os.path.join(
+    project_root, 'output', 'dict_notice_relevant_info_boths.csv')
+save_dict_notices_relevant_info_to_csv(
+    outpat_notice_reais_relevant_info_csv, dict_notice_boths_relevant_info, 'Boths')
+
 dict_notice_reais_relevant_info: dict = {}
 dict_notice_reais_relevant_info = create_dictionary_notices_relevant_info(
     dict_notice_reais_relevant_info, dict_notice_reais)
@@ -316,9 +357,9 @@ save_dict_notices_relevant_info_to_csv(
 dict_notice_fakes_relevant_info: dict = {}
 dict_notice_fakes_relevant_info = create_dictionary_notices_relevant_info(
     dict_notice_fakes_relevant_info, dict_notice_fakes)
-dict_notice_reais_relevant_info = update_dictionary_notices_relevant_info(
+dict_notice_fakes_relevant_info = update_dictionary_notices_relevant_info(
     dict_notice_fakes_relevant_info, dict_notice_fakes, dict_strong_words_reais, 1)
-dict_notice_reais_relevant_info = update_dictionary_notices_relevant_info(
+dict_notice_fakes_relevant_info = update_dictionary_notices_relevant_info(
     dict_notice_fakes_relevant_info, dict_notice_fakes, dict_strong_words_fakes, 0)
 
 outpat_notice_fakes_relevant_info_xlsx = os.path.join(
