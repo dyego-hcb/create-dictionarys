@@ -1,3 +1,15 @@
+import csv
+import sys
+import os
+import pandas as pd
+
+from openpyxl import Workbook
+from unidecode import unidecode
+
+current_dir = os.path.dirname(os.path.abspath(__file__))
+project_root = os.path.abspath(os.path.join(current_dir, '..'))
+sys.path.append(project_root)
+
 from utils.extract_info_notices.script.extract_info_notices import extract_data
 from utils.words_tokenize.script.words_tokenize import tokenize_words
 from utils.words_lowercase.script.words_lowercase import convert_words_lower_case
@@ -5,18 +17,6 @@ from utils.remove_accentuation.script.remove_accentuation import remover_accentu
 from utils.remove_punctuation.script.remove_punctuation import remover_ponctuation
 from utils.remove_stopwords.script.remove_stopwords import remove_stopwords_in_list
 from utils.words_stemmer.script.words_stemmer import stemmize_words
-from openpyxl import Workbook
-from unidecode import unidecode
-import csv
-import sys
-import os
-import openpyxl
-import pandas as pd
-
-current_dir = os.path.dirname(os.path.abspath(__file__))
-project_root = os.path.abspath(os.path.join(current_dir, '..'))
-sys.path.append(project_root)
-
 
 def add_notice_on_dict(dict_notice, id_dict_notice, id_notice, title_notice, content_notice, classe_notice):
     words_without_ponctuation = remover_ponctuation(content_notice)
@@ -222,7 +222,7 @@ def create_dictionary_notices_relevant_info(dict_notice_relevant_info, dict_noti
         dict_notice_relevant_info[id_dict_info]['notice_words_total_without_stopwords'] = notice_info.get(
             'notice_words_total_without_stopwords')
 
-    print('Finish create dict of notices with relevant info ...\n')
+    print('Finish create dict of notices with relevant info\n')
 
     return dict_notice_relevant_info
 
@@ -283,7 +283,7 @@ def update_dictionary_notices_relevant_info(dict_notice_relevant_info, dict_noti
             dict_notice_relevant_info[id_dict_noitice_relevant_info][
                 'fake_words_strongs_in_notice_number_appear'] = fake_words_strongs_in_notice_number_appear
 
-    print('Finish update dict of notices with relevant info ...\n')
+    print('Finish update dict of notices with relevant info\n')
     return dict_notice_relevant_info
 
 
@@ -373,3 +373,108 @@ def save_dict_notices_relevant_info_to_csv(file_path, dict_notice_relevant_info,
               quoting=csv.QUOTE_NONNUMERIC)
 
     print('Finish save dict of notices relevant info\n')
+
+
+def create_dictionary_notices_adapter_to_weka(dict_notice_adapter_to_weka, dict_notice, dict_strong_words, individual_group):
+    print('Starting create dict of notices adapter to weka ...')
+
+    if(individual_group == 0):
+        for id_dict_notice in dict_notice:
+            id_dict_info = len(dict_notice_adapter_to_weka)
+            notice_info = dict_notice[id_dict_notice]
+            dict_notice_adapter_to_weka[id_dict_info] = {}
+            dict_notice_adapter_to_weka[id_dict_info]['id_notice'] = notice_info.get(
+                'id_notice')
+            dict_notice_adapter_to_weka[id_dict_info]['title_notice'] = notice_info.get(
+                'title_notice')
+            for id_dict_strong_word in dict_strong_words:
+                strong_word_info = dict_strong_words[id_dict_strong_word]
+                dict_notice_adapter_to_weka[id_dict_info][strong_word_info.get('word')] = ' '
+            dict_notice_adapter_to_weka[id_dict_info]['class_notice'] = notice_info.get('classe_notice')
+    else:
+        for id_dict_notice_adapter_to_weka in dict_notice_adapter_to_weka:
+            for id_dict_strong_word in dict_strong_words:
+                strong_word_info = dict_strong_words[id_dict_strong_word]
+                dict_notice_adapter_to_weka[id_dict_notice_adapter_to_weka][strong_word_info.get('word')] = ' '
+
+    print('Finish create dict of notices adapter to weka\n')
+
+    return dict_notice_adapter_to_weka
+
+def update_dictionary_notices_adapter_to_weka(dict_notice_adapter_to_weka, dict_notice, dict_strong_word):
+    print('Starting update dict of notices adapter to weka ...')
+
+    for id_dict_notice_adapter_to_weka, notice_adapter_to_weka  in dict_notice_adapter_to_weka.items():
+
+        id_notice_adapter_to_weka = notice_adapter_to_weka['id_notice']
+
+        matching_notice = None
+        for notice in dict_notice.values():
+            if notice['id_notice'] == id_notice_adapter_to_weka:
+                matching_notice = notice
+                break
+
+        if matching_notice:
+            notice_words = matching_notice['notice_content_stemm_without_stopwords']
+
+            for word in notice_words:
+                if word in {entry['word'] for entry in dict_strong_word.values()}:
+                    dict_notice_adapter_to_weka[id_dict_notice_adapter_to_weka][word] = notice_words.count(word)
+
+    print('Finish update dict of notices adapter to weka\n')
+    return dict_notice_adapter_to_weka
+
+def load_dict_notices_adapter_to_weka_xlsx(dict_notice_adapter_to_weka, file_path):
+    print('Starting load dict of notices adapter to weka from xlsx...')
+
+    df = pd.read_excel(file_path)
+    
+    for index, row in df.iterrows():
+        dict_info = {}
+        for col_name, value in row.items():
+            if col_name == 'id_notice':
+                dict_info['id_notice'] = value
+            elif col_name == 'title_notice':
+                dict_info['title_notice'] = value
+            else:
+                dict_info[col_name] = value
+        dict_notice_adapter_to_weka[index] = dict_info
+    
+    print('Finish load dict of notices adapter to weka from xlsx\n')
+    return dict_notice_adapter_to_weka
+
+def save_dict_notices_adapter_to_weka_to_xlsx(file_path, dict_notice_adapter_to_weka, group_name):
+    print('Starting save dict of notices adapter to weka ...')
+
+    df = pd.DataFrame.from_dict(dict_notice_adapter_to_weka, orient='index')
+
+    wb = Workbook()
+    ws = wb.active
+    ws.title = f'InfoRelDict de Noticias {group_name}'
+
+    headers = list(dict_notice_adapter_to_weka[next(
+        iter(dict_notice_adapter_to_weka))].keys())
+    for col_num, value in enumerate(headers, start=1):
+        ws.cell(row=1, column=col_num, value=value)
+
+    for row_num, (id_notice, row_data) in enumerate(df.iterrows(), start=2):
+        for col_num, value in enumerate(row_data, start=1):
+            if isinstance(value, list):
+                value = '\n'.join(str(value))
+            ws.cell(row=row_num, column=col_num, value=value)
+
+    wb.save(file_path)
+
+    print('Finish save dict of notices adapter to weka\n')
+
+
+def save_dict_notices_adapter_to_weka_to_csv(file_path, dict_notice_adapter_to_weka, group_name):
+    print('Starting save dict of notices adapter to weka ...')
+
+    df = pd.DataFrame.from_dict(dict_notice_adapter_to_weka, orient='index')
+
+    df = df.drop(columns=['title_notice'])
+
+    df.to_csv(file_path, index_label='id_notice')
+
+    print('Finish save dict of notices adapter to weka\n')
