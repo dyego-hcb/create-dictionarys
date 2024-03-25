@@ -425,6 +425,8 @@ def update_dictionary_notices_adapter_to_weka(dict_notice_adapter_to_weka, dict_
     return dict_notice_adapter_to_weka
 
 def remove_notices_not_appear_strong_words(dict_notice_adapter_to_weka, strong_words_boths_total):
+    print('Starting remove dict of notices adapter to weka ...')
+
     id_notice_to_remove = []
 
     for id_notice, value in dict_notice_adapter_to_weka.items():
@@ -437,6 +439,7 @@ def remove_notices_not_appear_strong_words(dict_notice_adapter_to_weka, strong_w
     for id_remove in id_notice_to_remove:
         del dict_notice_adapter_to_weka[id_remove]
 
+    print('Finish remove dict of notices adapter to weka\n')
     return dict_notice_adapter_to_weka
 
 def load_dict_notices_adapter_to_weka_xlsx(dict_notice_adapter_to_weka, file_path):
