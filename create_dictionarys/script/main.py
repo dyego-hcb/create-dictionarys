@@ -2,7 +2,7 @@ import sys
 import os
 import pandas as pd
 
-from create_dictionary_notices import create_dictionary_notices, create_dictionary_notices_relevant_info, update_dictionary_notices_relevant_info, load_dict_notices_xlsx, save_dict_notices_to_xlsx, save_dict_notices_to_csv, load_dict_notices_relevant_info_xlsx, save_dict_notices_relevant_info_to_xlsx, save_dict_notices_relevant_info_to_csv, create_dictionary_notices_adapter_to_weka, update_dictionary_notices_adapter_to_weka, load_dict_notices_adapter_to_weka_xlsx, save_dict_notices_adapter_to_weka_to_xlsx, save_dict_notices_adapter_to_weka_to_csv
+from create_dictionary_notices import create_dictionary_notices, create_dictionary_notices_relevant_info, update_dictionary_notices_relevant_info, load_dict_notices_xlsx, save_dict_notices_to_xlsx, save_dict_notices_to_csv, load_dict_notices_relevant_info_xlsx, save_dict_notices_relevant_info_to_xlsx, save_dict_notices_relevant_info_to_csv, create_dictionary_notices_adapter_to_weka, update_dictionary_notices_adapter_to_weka, remove_notices_not_appear_strong_words, load_dict_notices_adapter_to_weka_xlsx, save_dict_notices_adapter_to_weka_to_xlsx, save_dict_notices_adapter_to_weka_to_csv
 from create_dictionary_strong_words import load_dict_strong_wrods_xlsx, save_dict_strong_words_to_xlsx
 from create_dictionary_words_group import create_dictionary_words_group, update_dictionary_words_group, load_dict_words_group_xlsx, save_dict_words_group_to_xlsx, save_dict_words_group_relevants_info_to_csv
 from create_dictionary_words import create_dictionary_words, update_dictionary_words, calculate_percent_to_strong_word, load_dict_words_xlsx, save_dict_words_to_xlsx, save_dict_words_relevants_info_to_csv
@@ -122,11 +122,11 @@ def main():
     # strong_words_dict_reais_total = 0
 
     dict_strong_words_reais = load_dict_strong_wrods_xlsx(
-        path_load_dicts, "dict_strong_words_reais_pre_processado_80.xlsx", dict_strong_words_reais)
+        path_load_dicts, "dict_strong_words_reais_with_100_words.xlsx", dict_strong_words_reais)
 
     # dict_strong_words_reais = create_dictionary_strong_words(dict_strong_words_reais, dict_words, 1)
 
-    # strong_words_dict_reais_total = len(dict_strong_words_reais)
+    strong_words_dict_reais_total = len(dict_strong_words_reais)
 
     # outpat_strong_words = os.path.join(project_root, 'output', 'dict_strong_words_reais.xlsx')
     # save_dict_strong_words_to_xlsx(outpat_strong_words, dict_strong_words_reais, 'R')
@@ -138,10 +138,11 @@ def main():
     # strong_words_dict_fakes_total = 0
 
     dict_strong_words_fakes = load_dict_strong_wrods_xlsx(
-        path_load_dicts, "dict_strong_words_fakes_pre_processado_25.xlsx", dict_strong_words_fakes)
+        path_load_dicts, "dict_strong_words_fakes_with_100_words.xlsx", dict_strong_words_fakes)
 
     # dict_strong_words_fakes = create_dictionary_strong_words(dict_strong_words_fakes, dict_words, 0)
-    # strong_words_dict_fakes_total = len(dict_strong_words_fakes)
+    
+    strong_words_dict_fakes_total = len(dict_strong_words_fakes)
 
     # outpat_strong_words = os.path.join(project_root, 'output', 'dict_strong_words_fakes.xlsx')
     # save_dict_strong_words_to_xlsx(outpat_strong_words, dict_strong_words_fakes, 'F')
@@ -214,6 +215,8 @@ def main():
     # save_dict_notices_relevant_info_to_xlsx(
     #     outpat_notice_fakes_relevant_info_csv, dict_notice_fakes_relevant_info, 'Fakes')
     
+    strong_words_boths_total = strong_words_dict_fakes_total + strong_words_dict_reais_total
+
     dict_notice_boths_adapter_to_weka: dict = {}
 
     dict_notice_boths_adapter_to_weka = create_dictionary_notices_adapter_to_weka(
@@ -230,9 +233,11 @@ def main():
         dict_notice_boths_adapter_to_weka, dict_notice_fakes, dict_strong_words_reais)
     dict_notice_boths_adapter_to_weka = update_dictionary_notices_adapter_to_weka(
         dict_notice_boths_adapter_to_weka, dict_notice_fakes, dict_strong_words_fakes)
+    
+    dict_notice_boths_adapter_to_weka = remove_notices_not_appear_strong_words(dict_notice_boths_adapter_to_weka, strong_words_boths_total)
 
-    outpat_notice_reais_adapter_to_weka_xlsx = os.path.join(
-        project_root, 'output', 'dict_notice_adapter_to_weka_boths.xlsx')
+    # outpat_notice_reais_adapter_to_weka_xlsx = os.path.join(
+    #     project_root, 'output', 'dict_notice_adapter_to_weka_boths.xlsx')
     # save_dict_notices_adapter_to_weka_to_xlsx(
     #     outpat_notice_reais_adapter_to_weka_xlsx, dict_notice_boths_adapter_to_weka, 'Boths')
 
@@ -251,9 +256,11 @@ def main():
         dict_notice_reais_adapter_to_weka, dict_notice_reais, dict_strong_words_reais)
     dict_notice_reais_adapter_to_weka = update_dictionary_notices_adapter_to_weka(
         dict_notice_reais_adapter_to_weka, dict_notice_reais, dict_strong_words_fakes)
+    
+    dict_notice_reais_adapter_to_weka = remove_notices_not_appear_strong_words(dict_notice_reais_adapter_to_weka, strong_words_boths_total)
 
-    outpat_notice_reais_adapter_to_weka_xlsx = os.path.join(
-        project_root, 'output', 'dict_notice_adapter_to_weka_reais.xlsx')
+    # outpat_notice_reais_adapter_to_weka_xlsx = os.path.join(
+    #     project_root, 'output', 'dict_notice_adapter_to_weka_reais.xlsx')
     # save_dict_notices_adapter_to_weka_to_xlsx(
     #     outpat_notice_reais_adapter_to_weka_xlsx, dict_notice_reais_adapter_to_weka, 'Reais')
 
@@ -272,9 +279,11 @@ def main():
         dict_notice_fakes_adapter_to_weka, dict_notice_fakes, dict_strong_words_reais)
     dict_notice_fakes_adapter_to_weka = update_dictionary_notices_adapter_to_weka(
         dict_notice_fakes_adapter_to_weka, dict_notice_fakes, dict_strong_words_fakes)
+    
+    dict_notice_fakes_adapter_to_weka = remove_notices_not_appear_strong_words(dict_notice_fakes_adapter_to_weka, strong_words_boths_total)
 
-    outpat_notice_fakes_adapter_to_weka_xlsx = os.path.join(
-        project_root, 'output', 'dict_notice_adapter_to_weka_fakes.xlsx')
+    # outpat_notice_fakes_adapter_to_weka_xlsx = os.path.join(
+    #     project_root, 'output', 'dict_notice_adapter_to_weka_fakes.xlsx')
     # save_dict_notices_adapter_to_weka_to_xlsx(
     #     outpat_notice_fakes_adapter_to_weka_xlsx, dict_notice_fakes_adapter_to_weka, 'Fakes')
 

@@ -424,6 +424,21 @@ def update_dictionary_notices_adapter_to_weka(dict_notice_adapter_to_weka, dict_
     print('Finish update dict of notices adapter to weka\n')
     return dict_notice_adapter_to_weka
 
+def remove_notices_not_appear_strong_words(dict_notice_adapter_to_weka, strong_words_boths_total):
+    id_notice_to_remove = []
+
+    for id_notice, value in dict_notice_adapter_to_weka.items():
+        if isinstance(value, (list, tuple)):
+            empty_count = value.count('')
+
+            if empty_count == strong_words_boths_total:
+                id_notice_to_remove.append(id_notice)
+    
+    for id_remove in id_notice_to_remove:
+        del dict_notice_adapter_to_weka[id_remove]
+
+    return dict_notice_adapter_to_weka
+
 def load_dict_notices_adapter_to_weka_xlsx(dict_notice_adapter_to_weka, file_path):
     print('Starting load dict of notices adapter to weka from xlsx...')
 
@@ -448,9 +463,11 @@ def save_dict_notices_adapter_to_weka_to_xlsx(file_path, dict_notice_adapter_to_
 
     df = pd.DataFrame.from_dict(dict_notice_adapter_to_weka, orient='index')
 
+    df['class_notice'] = df.pop('class_notice')
+
     wb = Workbook()
     ws = wb.active
-    ws.title = f'InfoRelDict de Noticias {group_name}'
+    ws.title = f'DictToWeka de Noticias {group_name}'
 
     headers = list(dict_notice_adapter_to_weka[next(
         iter(dict_notice_adapter_to_weka))].keys())
@@ -472,6 +489,8 @@ def save_dict_notices_adapter_to_weka_to_csv(file_path, dict_notice_adapter_to_w
     print('Starting save dict of notices adapter to weka ...')
 
     df = pd.DataFrame.from_dict(dict_notice_adapter_to_weka, orient='index')
+
+    df['class_notice'] = df.pop('class_notice')
 
     df = df.drop(columns=['title_notice'])
 
