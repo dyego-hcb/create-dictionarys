@@ -52,6 +52,7 @@ def create_dictionary_strong_words(dict_strong_words, dict_words, class_dict):
 
 def load_dict_strong_wrods_xlsx(folder_path, file_name, dict_strong_words):
     print('Starting loading dict strong words ...')
+
     file_path = os.path.join(folder_path, file_name)
 
     df = pd.read_excel(file_path)
@@ -65,13 +66,15 @@ def load_dict_strong_wrods_xlsx(folder_path, file_name, dict_strong_words):
         words_total_appear_in_group_fake = row['words_total_appear_in_group_fake']
         percet_strong_word_in_group_fake = row['percet_strong_word_in_group_fake']
 
-        dict_strong_words[id_dict_strong_words] = {}
-        dict_strong_words[id_dict_strong_words]['word'] = word
-        dict_strong_words[id_dict_strong_words]['words_total_appear_in_both_group'] = words_total_appear_in_both_group
-        dict_strong_words[id_dict_strong_words]['words_total_appear_in_group_real'] = words_total_appear_in_group_real
-        dict_strong_words[id_dict_strong_words]['percet_strong_word_in_group_real'] = percet_strong_word_in_group_real
-        dict_strong_words[id_dict_strong_words]['words_total_appear_in_group_fake'] = words_total_appear_in_group_fake
-        dict_strong_words[id_dict_strong_words]['percet_strong_word_in_group_fake'] = percet_strong_word_in_group_fake
+        if id_dict_strong_words not in dict_strong_words:
+            dict_strong_words[id_dict_strong_words] = {}
+
+        dict_strong_words[id_dict_strong_words]['word'] = row['word']
+        dict_strong_words[id_dict_strong_words]['words_total_appear_in_both_group'] = row['words_total_appear_in_both_group']
+        dict_strong_words[id_dict_strong_words]['words_total_appear_in_group_real'] = row['words_total_appear_in_group_real']
+        dict_strong_words[id_dict_strong_words]['percet_strong_word_in_group_real'] = row['percet_strong_word_in_group_real']
+        dict_strong_words[id_dict_strong_words]['words_total_appear_in_group_fake'] = row['words_total_appear_in_group_fake']
+        dict_strong_words[id_dict_strong_words]['percet_strong_word_in_group_fake'] = row['percet_strong_word_in_group_fake']
 
     print('Finish load dict of strong words\n')
 

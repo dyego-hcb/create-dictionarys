@@ -119,7 +119,7 @@ def main():
     # save_dict_words_to_xlsx(outpat_words, dict_words, 'Geral')
 
     dict_strong_words_reais: dict = {}
-    # strong_words_dict_reais_total = 0
+    strong_words_dict_reais_total = 0
 
     dict_strong_words_reais = load_dict_strong_wrods_xlsx(
         path_load_dicts, "dict_strong_words_reais_with_100_words.xlsx", dict_strong_words_reais)
@@ -135,7 +135,7 @@ def main():
     # save_dict_strong_words_to_csv(outpat_strong_words, dict_strong_words_reais, 'Reais')
 
     dict_strong_words_fakes: dict = {}
-    # strong_words_dict_fakes_total = 0
+    strong_words_dict_fakes_total = 0
 
     dict_strong_words_fakes = load_dict_strong_wrods_xlsx(
         path_load_dicts, "dict_strong_words_fakes_with_100_words.xlsx", dict_strong_words_fakes)

@@ -429,12 +429,11 @@ def remove_notices_not_appear_strong_words(dict_notice_adapter_to_weka, strong_w
 
     id_notice_to_remove = []
 
-    for id_notice, value in dict_notice_adapter_to_weka.items():
-        if isinstance(value, (list, tuple)):
-            empty_count = value.count('')
+    for id_notice, line_value in dict_notice_adapter_to_weka.items():
+        empty_count = sum(1 for item in line_value.values() if item == ' ')
 
-            if empty_count == strong_words_boths_total:
-                id_notice_to_remove.append(id_notice)
+        if empty_count == strong_words_boths_total:
+            id_notice_to_remove.append(id_notice)
     
     for id_remove in id_notice_to_remove:
         del dict_notice_adapter_to_weka[id_remove]
